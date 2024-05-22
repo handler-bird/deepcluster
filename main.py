@@ -259,7 +259,7 @@ def train(loader, model, crit, opt, epoch):
                 'optimizer' : opt.state_dict()
             }, path)
 
-        target = target.cuda(async=True)
+        target = target.cuda(non_blocking=True)
         input_var = torch.autograd.Variable(input_tensor.cuda())
         target_var = torch.autograd.Variable(target)
 
@@ -298,27 +298,29 @@ def compute_features(dataloader, model, N):
     model.eval()
     # discard the label information in the dataloader
     for i, (input_tensor, _) in enumerate(dataloader):
-        input_var = torch.autograd.Variable(input_tensor.cuda(), volatile=True)
-        aux = model(input_var).data.cpu().numpy()
+        with torch.no_grad():
+          input_var = input_tensor.cuda()
 
-        if i == 0:
-            features = np.zeros((N, aux.shape[1]), dtype='float32')
+          aux = model(input_var).data.cpu().numpy()
 
-        aux = aux.astype('float32')
-        if i < len(dataloader) - 1:
-            features[i * args.batch: (i + 1) * args.batch] = aux
-        else:
-            # special treatment for final batch
-            features[i * args.batch:] = aux
+          if i == 0:
+              features = np.zeros((N, aux.shape[1]), dtype='float32')
 
-        # measure elapsed time
-        batch_time.update(time.time() - end)
-        end = time.time()
+          aux = aux.astype('float32')
+          if i < len(dataloader) - 1:
+              features[i * args.batch: (i + 1) * args.batch] = aux
+          else:
+              # special treatment for final batch
+              features[i * args.batch:] = aux
 
-        if args.verbose and (i % 200) == 0:
-            print('{0} / {1}\t'
-                  'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})'
-                  .format(i, len(dataloader), batch_time=batch_time))
+          # measure elapsed time
+          batch_time.update(time.time() - end)
+          end = time.time()
+
+          if args.verbose and (i % 200) == 0:
+              print('{0} / {1}\t'
+                    'Time: {batch_time.val:.3f} ({batch_time.avg:.3f})'
+                    .format(i, len(dataloader), batch_time=batch_time))
     return features
 
 
