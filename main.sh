@@ -6,14 +6,14 @@
 #
 #!/bin/bash
 
-DIR="/datasets01/imagenet_full_size/061417/train"
+DIR="${HOME}/../content/deepcluster/data/cifar-10/train"
 ARCH="alexnet"
 LR=0.05
 WD=-5
-K=10000
-WORKERS=12
-EXP="/private/home/${USER}/test/exp"
-PYTHON="/private/home/${USER}/test/conda/bin/python"
+K=100
+WORKERS=2
+EXP="${HOME}/deepcluster_exp/main"
+PYTHON="${HOME}/../usr/bin/python3"
 
 mkdir -p ${EXP}
 
